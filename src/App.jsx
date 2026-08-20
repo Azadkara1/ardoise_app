@@ -251,12 +251,12 @@ export default function Ardoise() {
         </div>
 
         {/* Switch supports */}
-        <nav className="hidden sm:flex items-center gap-1 mx-auto rounded-lg p-1" style={{ background: SHELL.ink2 }}>
+        <nav className="hidden sm:flex items-center gap-1 mx-auto rounded-lg p-1 overflow-x-auto max-w-full" style={{ background: SHELL.ink2 }}>
           {supports.map((s) => {
             const Ic = s.icon; const on = support === s.id;
             return (
               <button key={s.id} onClick={() => setSupport(s.id)}
-                className="flex items-center gap-2 rounded-md px-3 py-1.5 transition-colors"
+                className="shrink-0 flex items-center gap-2 rounded-md px-3 py-1.5 transition-colors whitespace-nowrap"
                 style={{ background: on ? SHELL.honey : "transparent", color: on ? SHELL.ink : "#cfcbc2", fontSize: 13, fontWeight: on ? 600 : 500 }}>
                 <Ic size={15} strokeWidth={2.2} /> {s.label}
               </button>
@@ -285,12 +285,14 @@ export default function Ardoise() {
         </div>
       </header>
 
-      {/* switch supports mobile */}
-      <nav className="flex sm:hidden items-center gap-1 p-2 shrink-0" style={{ background: SHELL.ink2 }}>
+      {/* switch supports mobile — 8 supports ne tiennent plus sur une largeur d'écran fixe :
+          défilement horizontal plutôt que de les écraser (ou les faire déborder) sur une ligne */}
+      <nav className="flex sm:hidden items-center gap-1.5 p-2 overflow-x-auto shrink-0" style={{ background: SHELL.ink2 }}>
         {supports.map((s) => {
           const Ic = s.icon; const on = support === s.id;
           return (
-            <button key={s.id} onClick={() => setSupport(s.id)} className="flex-1 flex items-center justify-center gap-1.5 rounded-md px-2 py-2"
+            <button key={s.id} onClick={() => setSupport(s.id)}
+              className="shrink-0 flex items-center justify-center gap-1.5 rounded-md px-3 py-2 whitespace-nowrap"
               style={{ background: on ? SHELL.honey : "transparent", color: on ? SHELL.ink : "#cfcbc2", fontSize: 12, fontWeight: 600 }}>
               <Ic size={14} /> {s.label}
             </button>
