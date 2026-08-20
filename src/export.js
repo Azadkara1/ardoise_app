@@ -1,21 +1,23 @@
-import { toPng } from "html-to-image";
+import { toBlob } from "html-to-image";
 import jsPDF from "jspdf";
 
 /*
- * Un format d'export par support : dimensions physiques (mm) pour le PDF, et
- * un pixelRatio de capture (le nœud est rendu à l'échelle 1 en ~420px CSS —
- * voir Workspace.jsx — donc c'est le pixelRatio qui fait la résolution finale).
- * 4:5 et 1:1 sont pensés écran (Instagram) ; A5/A4 pensés impression.
+ * Un pixelRatio de capture par support (le nœud est rendu à l'échelle 1 en
+ * ~420px CSS — voir Workspace.jsx — donc c'est le pixelRatio qui fait la
+ * résolution finale). La largeur de page PDF est nominale ; la hauteur est
+ * recalculée à partir du ratio réellement capturé (voir exportSupport) car
+ * les supports "carte" (Semaine/Menu/Saisonnier/Boissons) grandissent avec
+ * le contenu et ne font pas toujours exactement le format A4/A5/4:5 nominal.
  */
 const PAGE_SPECS = {
-  semaine: { width: 150, height: 187.5, pixelRatio: 3 }, // 4:5
-  menu: { width: 148, height: 210, pixelRatio: 4 }, // A5 portrait
-  special: { width: 210, height: 297, pixelRatio: 4 }, // A4 portrait
-  post: { width: 190, height: 190, pixelRatio: 3 }, // carré
-  saison: { width: 148, height: 210, pixelRatio: 4 }, // A5 portrait
-  boissons: { width: 148, height: 210, pixelRatio: 4 }, // A5 portrait
-  story: { width: 105, height: 186.7, pixelRatio: 3 }, // 9:16
-  soiree: { width: 210, height: 297, pixelRatio: 4 }, // A4 portrait
+  semaine: { width: 150, pixelRatio: 3 }, // 4:5
+  menu: { width: 148, pixelRatio: 4 }, // A5 portrait
+  special: { width: 210, pixelRatio: 4 }, // A4 portrait
+  post: { width: 190, pixelRatio: 3 }, // carré
+  saison: { width: 148, pixelRatio: 4 }, // A5 portrait
+  boissons: { width: 148, pixelRatio: 4 }, // A5 portrait
+  story: { width: 105, pixelRatio: 3 }, // 9:16
+  soiree: { width: 210, pixelRatio: 4 }, // A4 portrait
 };
 
 const SUPPORT_SLUGS = {
@@ -39,18 +41,34 @@ const slugify = (s) =>
     .replace(/[^a-z0-9]+/g, "-")
     .replace(/(^-|-$)/g, "") || "ardoise";
 
-function downloadDataUrl(dataUrl, filename) {
+// Téléchargement via Blob + URL objet plutôt qu'un `data:` URI brut dans le
+// `href` : un `data:` URI de plusieurs Mo (image haute résolution) échoue
+// silencieusement dans plusieurs navigateurs (Firefox notamment). Un Blob
+// n'a pas cette limite et fonctionne de façon fiable partout.
+function downloadBlob(blob, filename) {
+  const url = URL.createObjectURL(blob);
   const a = document.createElement("a");
-  a.href = dataUrl;
+  a.href = url;
   a.download = filename;
   document.body.appendChild(a);
   a.click();
   document.body.removeChild(a);
+  setTimeout(() => URL.revokeObjectURL(url), 2000);
+}
+
+function blobToDataURL(blob) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(reader.result);
+    reader.onerror = () => reject(new Error("Lecture de l'image impossible"));
+    reader.readAsDataURL(blob);
+  });
 }
 
 /**
- * Capture le nœud d'aperçu (à l'échelle 1, cf. Workspace.jsx) en PNG net et
- * déclenche le téléchargement, en PNG direct ou intégré dans un PDF.
+ * Capture le nœud d'aperçu (à l'échelle 1, cf. Workspace.jsx) en image nette
+ * et déclenche le téléchargement, en PNG direct ou intégré dans un PDF dont
+ * la page épouse le ratio réellement capturé (pas de déformation).
  */
 export async function exportSupport({ node, support, restaurantName, format }) {
   if (!node) throw new Error("Aperçu introuvable pour l'export.");
@@ -62,24 +80,33 @@ export async function exportSupport({ node, support, restaurantName, format }) {
     await document.fonts.ready;
   }
 
-  const dataUrl = await toPng(node, {
+  // Ratio réel du nœud au moment de la capture (les supports "carte" comme
+  // Menu/Semaine ont une hauteur qui dépend du contenu, pas un format figé).
+  const rect = node.getBoundingClientRect();
+  const aspect = rect.height / Math.max(1, rect.width);
+
+  const blob = await toBlob(node, {
     pixelRatio: spec.pixelRatio,
     cacheBust: true,
     skipFonts: false,
   });
+  if (!blob) throw new Error("La génération de l'image a échoué.");
 
   const filename = `${slugify(restaurantName)}-${SUPPORT_SLUGS[support] || support}`;
 
   if (format === "PNG") {
-    downloadDataUrl(dataUrl, `${filename}.png`);
+    downloadBlob(blob, `${filename}.png`);
     return;
   }
 
+  const dataUrl = await blobToDataURL(blob);
+  const pageWidth = spec.width;
+  const pageHeight = pageWidth * aspect;
   const pdf = new jsPDF({
-    orientation: spec.width > spec.height ? "landscape" : "portrait",
+    orientation: pageHeight > pageWidth ? "portrait" : "landscape",
     unit: "mm",
-    format: [spec.width, spec.height],
+    format: [pageWidth, pageHeight],
   });
-  pdf.addImage(dataUrl, "PNG", 0, 0, spec.width, spec.height);
+  pdf.addImage(dataUrl, "PNG", 0, 0, pageWidth, pageHeight);
   pdf.save(`${filename}.pdf`);
 }

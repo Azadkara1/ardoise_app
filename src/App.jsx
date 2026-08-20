@@ -197,12 +197,16 @@ export default function Ardoise() {
     window.location.reload();
   };
 
+  // "PNG" reste le format technique interne (export.js, extension de fichier) ;
+  // seul le libellé affiché change ("Image", plus parlant pour un commerçant).
+  const FORMAT_LABELS = { PDF: "PDF", PNG: "Image" };
+
   const doExport = async (fmt) => {
     setExportOpen(false);
     setExporting(true);
     try {
       await exportSupport({ node: exportRef.current, support, restaurantName: info.name, format: fmt });
-      setToast(`Export ${fmt} téléchargé`);
+      setToast(`Export ${FORMAT_LABELS[fmt] || fmt} téléchargé`);
     } catch (e) {
       console.error(e);
       setToast("Échec de l'export — réessaie");
@@ -277,7 +281,7 @@ export default function Ardoise() {
               {["PDF", "PNG"].map((f) => (
                 <button key={f} onClick={() => doExport(f)} className="flex items-center gap-2 w-full px-3.5 py-2.5 text-left hover:bg-neutral-100"
                   style={{ fontSize: 13, color: SHELL.txt }}>
-                  <Download size={14} /> Exporter en {f}
+                  <Download size={14} /> Exporter en {FORMAT_LABELS[f]}
                 </button>
               ))}
             </div>
