@@ -2,6 +2,7 @@ import { ff } from "../theme.js";
 import { hexA, onColor } from "../colorUtils.js";
 import { formatPrice } from "../currency.js";
 import { t } from "../i18n.js";
+import PhotoBg from "./PhotoBg.jsx";
 
 /* ======================= PREVIEW : STORY (9:16) ======================= */
 export default function StoryPreview({ kit, info, dish, currency, lang, w }) {
@@ -14,9 +15,10 @@ export default function StoryPreview({ kit, info, dish, currency, lang, w }) {
 
   return (
     <div style={{ width: w, height: H, position: "relative", overflow: "hidden", fontFamily: body,
-      background: hasPhoto ? `#000 url(${dish.photo}) center/cover no-repeat` : kit.background,
+      background: hasPhoto ? "#000" : kit.background,
       color: hasPhoto ? fg : kit.text,
       boxShadow: "0 24px 60px -20px rgba(0,0,0,0.4), 0 4px 14px rgba(0,0,0,0.12)" }}>
+      {hasPhoto && <PhotoBg src={dish.photo} fit={dish.photoFit} />}
       {hasPhoto && (
         <div style={{ position: "absolute", inset: 0, background: "linear-gradient(180deg, rgba(0,0,0,0.15) 0%, rgba(0,0,0,0.05) 35%, rgba(0,0,0,0.82) 100%)" }} />
       )}

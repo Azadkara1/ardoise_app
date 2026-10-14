@@ -3,6 +3,7 @@ import { ff } from "../theme.js";
 import { hexA, onColor } from "../colorUtils.js";
 import { formatPrice } from "../currency.js";
 import { t } from "../i18n.js";
+import PhotoBg from "./PhotoBg.jsx";
 
 /* ======================= PREVIEW : POST (1080×1080) ======================= */
 export default function PostPreview({ kit, info, dish, currency, lang, w }) {
@@ -16,10 +17,11 @@ export default function PostPreview({ kit, info, dish, currency, lang, w }) {
 
   return (
     <div style={{ width: w, height: w, fontFamily: body, position: "relative",
-      background: hasPhoto ? `#000 url(${dish.photo}) center/cover no-repeat` : kit.background,
+      background: hasPhoto ? "#000" : kit.background,
       color: textFg,
       boxShadow: "0 24px 60px -20px rgba(0,0,0,0.35), 0 4px 14px rgba(0,0,0,0.10)", overflow: "hidden",
       display: "flex", flexDirection: "column", padding: 30 }}>
+      {hasPhoto && <PhotoBg src={dish.photo} fit={dish.photoFit} />}
       {hasPhoto && (
         <div style={{ position: "absolute", inset: 0, background: "linear-gradient(180deg, rgba(0,0,0,0.45) 0%, rgba(0,0,0,0.15) 30%, rgba(0,0,0,0.7) 100%)" }} />
       )}

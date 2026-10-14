@@ -6,7 +6,7 @@ import { SubLabel, TextField, SegmentedField } from "./ui.jsx";
 import DishRow from "./DishRow.jsx";
 
 /* Même structure d'édition que la Carte principale (DishRow + sections), sur `seasonal.dishes`. */
-export default function SeasonalEditor({ seasonal, setSeasonal, currency }) {
+export default function SeasonalEditor({ seasonal, setSeasonal, currency, photos }) {
   const set = (patch) => setSeasonal((s) => ({ ...s, ...patch }));
   const updDish = (id, patch) => setSeasonal((s) => ({ ...s, dishes: s.dishes.map((d) => (d.id === id ? { ...d, ...patch } : d)) }));
   const delDish = (id) => setSeasonal((s) => ({ ...s, dishes: s.dishes.filter((d) => d.id !== id) }));
@@ -31,7 +31,7 @@ export default function SeasonalEditor({ seasonal, setSeasonal, currency }) {
               {items.length === 0 && <div style={{ fontSize: 11.5, color: SHELL.mut, padding: "2px 0 4px" }}>Aucun plat</div>}
               <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
                 {items.map((d) => (
-                  <DishRow key={d.id} dish={d} currency={currency} onUpd={updDish} onDel={delDish} />
+                  <DishRow key={d.id} dish={d} currency={currency} photos={photos} onUpd={updDish} onDel={delDish} />
                 ))}
               </div>
             </div>

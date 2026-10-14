@@ -52,6 +52,7 @@ export function addDaysISO(startIso, n) {
 const longDateFmt = {
   fr: new Intl.DateTimeFormat("fr-FR", { weekday: "long", day: "numeric", month: "long" }),
   en: new Intl.DateTimeFormat("en-GB", { weekday: "long", day: "numeric", month: "long" }),
+  it: new Intl.DateTimeFormat("it-IT", { weekday: "long", day: "numeric", month: "long" }),
 };
 
 /** "Vendredi 12 décembre" / "Friday 12 December" — date de la soirée à thème. */

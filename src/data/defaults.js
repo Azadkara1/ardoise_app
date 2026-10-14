@@ -152,6 +152,12 @@ export const DEFAULT_EVENT = {
   photo: null,
 };
 
+/* ---- Photothèque : photos importées une fois, attribuées aux plats via `photoId` ---- */
+export const DEFAULT_PHOTOS = [];
+
+/* ---- Plat du jour : un seul champ libre ---- */
+export const DEFAULT_DAILY = { text: "" };
+
 export const DEFAULT_PROFILE_ID = "la-courbe-du-gout";
 
 export const DEFAULT_PROFILE = {
@@ -168,5 +174,7 @@ export const DEFAULT_PROFILE = {
     about: DEFAULT_ABOUT,
     weekHistory: [],
     event: DEFAULT_EVENT,
+    photos: DEFAULT_PHOTOS,
+    daily: DEFAULT_DAILY,
   },
 };

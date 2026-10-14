@@ -48,13 +48,15 @@ Si un fichier devient trop long, le découper plus finement (comme `App.jsx` l'a
 - `week` — menu de la semaine courante : `{ label, startDate, numDays, price, dessert, days:[{id,day,dish,garnish}], special:{dish,garnish}, note }`.
 - `support` — support actif : `semaine | menu | special | post | saison | boissons | story | soiree`.
 - `profiles` / `activeProfileId` — DA sauvegardées, cliquables (voir plus bas).
-- `settings` — réglages transverses : `{ currency: "CHF"|"EUR"|"USD"|"GBP", lang: "fr"|"en" }`.
+- `settings` — réglages transverses : `{ currency: "CHF"|"EUR"|"USD"|"GBP", lang: "fr"|"en"|"it" }`.
 - `seasonal` — menu saisonnier : `{ season, label, dishes:[...] }` (même forme que `dishes`, carte indépendante).
 - `drinks` — carte des boissons : `{ categories: [{ id, name, items:[{id,name,price}] }] }`.
 - `about` — bloc « à propos » optionnel sur le Menu : `{ enabled, title, text }`.
 - `featuredId` — id du plat vedette choisi manuellement (`null` = automatique) pour Plat du jour / Post / Story.
 - `weekHistory` — semaines passées archivées : `[{ id, ...snapshot de week }]`.
 - `event` — soirée à thème : `{ title, date, desc, price, photo }`.
+- `photos` — photothèque : `[{ id, src }]` (dataURL redimensionnées). Un plat y réfère via `photoId` + cadrage `photoFit: { x, y, zoom }` (x/y 0–100, zoom ≥ 1). `dish.photo` (dataURL directe) reste lu pour compatibilité.
+- `daily` — Plat du jour : `{ text }`, un seul champ libre (affiche `special`, indépendante de la carte).
 
 **Règle systématique : tout nouvel état doit être ajouté (1) à la sauvegarde `localStorage`, (2) au profil par défaut dans `data/defaults.js`, (3) à `saveProfile`/`selectProfile` dans `App.jsx`.** Sinon il n'est ni mémorisé, ni rechargé au clic sur un restaurant.
 
@@ -85,7 +87,7 @@ Ajouter un support = une entrée dans le tableau `supports` de `App.jsx` + un co
 
 - `storage.js` : `load()/save(state)/saveDebounced(state)/clear()`, clé versionnée `ardoise:v1`, try/catch sur tout accès (JSON corrompu → défauts).
 - Sauvegarde auto (debounce ~400ms) de tout l'état listé ci-dessus à chaque changement.
-- Un **profil** (`src/data/defaults.js` → `DEFAULT_PROFILE`) = `{ id, name, data: { kit, info, dishes, week, settings, seasonal, drinks, about, featuredId, weekHistory, event } }`. Cliquer sur un profil recharge tout `data` d'un coup.
+- Un **profil** (`src/data/defaults.js` → `DEFAULT_PROFILE`) = `{ id, name, data: { kit, info, dishes, week, settings, seasonal, drinks, about, featuredId, weekHistory, event, photos, daily } }`. Cliquer sur un profil recharge tout `data` d'un coup.
 
 ## Fait / À faire
 
@@ -107,6 +109,11 @@ Ajouter un support = une entrée dans le tableau `supports` de `App.jsx` + un co
 - Support **Soirée à thème** (`soiree`) : état `event` (`{title,date,desc,price,photo}`), éditeur dédié (`EventEditor.jsx`), affiche A4 festive (`EventPreview.jsx`, photo de fond optionnelle avec voile comme Post/Story).
 
 Chantier « devise, nouveaux supports, i18n » (AMELIORATIONS.md, second prompt) : **complet, 10/10 points.**
+
+- **Italien** (`lang: "it"`) : dictionnaire, jours, saisons, formule, date longue (`dateUtils.js`).
+- **Suppression du logo** (bouton sous l'import dans la DA).
+- **Photothèque** (`PhotoLibrary.jsx`) : import multiple une fois, puis attribution à chaque plat via son bouton photo (`DishRow.jsx`) ; cadrage déplaçable/zoomable (`PhotoAdjuster.jsx`, rendu `previews/PhotoBg.jsx`) appliqué à Post et Story.
+- **Plat du jour** simplifié : un seul champ libre (`DailyEditor.jsx`), plus de carte ni de plat vedette sur cette page (le sélecteur reste pour Post/Story).
 
 **Backlog (hors chantier actuel) :**
 - QR code de réservation.

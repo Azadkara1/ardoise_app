@@ -2,7 +2,7 @@ import { useEffect, useState, useRef } from "react";
 import {
   Palette, Image as ImageIcon, Upload, Loader2, Plus, Sparkles,
   Type, Store, UtensilsCrossed, LayoutGrid, Presentation, Square, Leaf, Wine, Info, Smartphone, PartyPopper,
-  Download, ChevronDown, RotateCcw,
+  Download, ChevronDown, RotateCcw, Trash2, BookImage, NotebookPen,
   Instagram, Facebook, Globe, Phone, CalendarDays,
 } from "lucide-react";
 
@@ -11,9 +11,10 @@ import { hexA, extractPalette } from "./colorUtils.js";
 import { uid } from "./id.js";
 import { computeWeekLabel, addDaysISO } from "./dateUtils.js";
 import { t } from "./i18n.js";
-import { PRESETS, SECTIONS, SAMPLE_DISHES, WEEK_DEFAULT, DEFAULT_KIT, DEFAULT_INFO, DEFAULT_SETTINGS, DEFAULT_SEASONAL, DEFAULT_DRINKS, DEFAULT_ABOUT, DEFAULT_EVENT, DEFAULT_PROFILE, DEFAULT_PROFILE_ID } from "./data/defaults.js";
+import { PRESETS, SECTIONS, SAMPLE_DISHES, WEEK_DEFAULT, DEFAULT_KIT, DEFAULT_INFO, DEFAULT_SETTINGS, DEFAULT_SEASONAL, DEFAULT_DRINKS, DEFAULT_ABOUT, DEFAULT_EVENT, DEFAULT_PHOTOS, DEFAULT_DAILY, DEFAULT_PROFILE, DEFAULT_PROFILE_ID } from "./data/defaults.js";
 import { load, saveDebounced, clear as clearStorage } from "./storage.js";
 import { exportSupport } from "./export.js";
+import { resizeImageFile } from "./imageUtils.js";
 
 import { Group, SubLabel, TextField, TextArea, FontSelect } from "./components/ui.jsx";
 import WeekEditor from "./components/WeekEditor.jsx";
@@ -24,6 +25,8 @@ import SeasonalEditor from "./components/SeasonalEditor.jsx";
 import DrinksEditor from "./components/DrinksEditor.jsx";
 import FeaturedPicker from "./components/FeaturedPicker.jsx";
 import EventEditor from "./components/EventEditor.jsx";
+import PhotoLibrary from "./components/PhotoLibrary.jsx";
+import DailyEditor from "./components/DailyEditor.jsx";
 import Workspace from "./components/Workspace.jsx";
 
 /* ------------------------------------------------------------------ */
@@ -50,6 +53,8 @@ export default function Ardoise() {
   const [featuredId, setFeaturedId] = useState(() => restored?.featuredId ?? null);
   const [weekHistory, setWeekHistory] = useState(() => (Array.isArray(restored?.weekHistory) ? restored.weekHistory : []));
   const [event, setEvent] = useState(() => ({ ...DEFAULT_EVENT, ...(restored?.event || {}) }));
+  const [photos, setPhotos] = useState(() => (Array.isArray(restored?.photos) ? restored.photos : DEFAULT_PHOTOS));
+  const [daily, setDaily] = useState(() => ({ ...DEFAULT_DAILY, ...(restored?.daily || {}) }));
 
   const [analyzing, setAnalyzing] = useState(false);
   const [activePreset, setActivePreset] = useState(null);
@@ -92,8 +97,8 @@ export default function Ardoise() {
 
   /* sauvegarde automatique (debounce) de tout l'état utile */
   useEffect(() => {
-    saveDebounced({ kit, info, dishes, week, support, profiles, activeProfileId, settings, seasonal, drinks, about, featuredId, weekHistory, event });
-  }, [kit, info, dishes, week, support, profiles, activeProfileId, settings, seasonal, drinks, about, featuredId, weekHistory, event]);
+    saveDebounced({ kit, info, dishes, week, support, profiles, activeProfileId, settings, seasonal, drinks, about, featuredId, weekHistory, event, photos, daily });
+  }, [kit, info, dishes, week, support, profiles, activeProfileId, settings, seasonal, drinks, about, featuredId, weekHistory, event, photos, daily]);
 
   const applyPreset = (p) => {
     setActivePreset(p.id);
@@ -120,6 +125,22 @@ export default function Ardoise() {
     };
     reader.readAsDataURL(file);
   };
+
+  const removeLogo = () => {
+    setKit((k) => ({ ...k, logo: null }));
+    setAnalyzing(false);
+  };
+
+  /* ---- Photothèque ---- */
+  const addPhotos = async (files) => {
+    const added = [];
+    for (const f of files) {
+      try { added.push({ id: uid(), src: await resizeImageFile(f) }); } catch { /* fichier illisible : ignoré */ }
+    }
+    if (added.length) setPhotos((p) => [...p, ...added]);
+    if (added.length < files.length) setToast("Une photo n'a pas pu être lue");
+  };
+  const deletePhoto = (id) => setPhotos((p) => p.filter((x) => x.id !== id));
 
   const setColor = (key, val) => { setKit((k) => ({ ...k, [key]: val })); setActivePreset(null); };
   const setFont = (key, val) => { setKit((k) => ({ ...k, [key]: val })); setActivePreset(null); };
@@ -152,7 +173,7 @@ export default function Ardoise() {
 
   /* ---- Profils resto (DA sauvegardées, cliquables) ---- */
   const saveProfile = (name) => {
-    const data = { kit, info: { ...info, name }, dishes, week, settings, seasonal, drinks, about, featuredId, weekHistory, event };
+    const data = { kit, info: { ...info, name }, dishes, week, settings, seasonal, drinks, about, featuredId, weekHistory, event, photos, daily };
     setProfiles((prev) => {
       const existing = prev.find((p) => p.name === name);
       const id = existing ? existing.id : uid();
@@ -178,6 +199,8 @@ export default function Ardoise() {
     setFeaturedId(data.featuredId ?? null);
     setWeekHistory(Array.isArray(data.weekHistory) ? data.weekHistory : []);
     setEvent({ ...DEFAULT_EVENT, ...(data.event || {}) });
+    setPhotos(Array.isArray(data.photos) ? data.photos : DEFAULT_PHOTOS);
+    setDaily({ ...DEFAULT_DAILY, ...(data.daily || {}) });
     setActiveProfileId(p.id);
     setActivePreset(null);
     setToast(`« ${p.name} » chargé`);
@@ -220,8 +243,10 @@ export default function Ardoise() {
     dishes.find((d) => d.dujour) ||
     dishes.find((d) => d.section === "plats") ||
     dishes[0];
-  const featured = (featuredId && dishes.find((d) => d.id === featuredId)) || autoFeatured;
-  const showFeaturedPicker = support === "special" || support === "post" || support === "story";
+  const featuredRaw = (featuredId && dishes.find((d) => d.id === featuredId)) || autoFeatured;
+  // la photo d'un plat vient de la photothèque (photoId) ; `photo` = ancienne photo stockée sur le plat
+  const featured = featuredRaw && { ...featuredRaw, photo: photos.find((p) => p.id === featuredRaw.photoId)?.src ?? featuredRaw.photo ?? null };
+  const showFeaturedPicker = support === "post" || support === "story";
 
   const lang = settings.lang;
   const supports = [
@@ -349,6 +374,13 @@ export default function Ardoise() {
               </button>
 
               {kit.logo && !analyzing && (
+                <button onClick={removeLogo}
+                  className="flex items-center gap-1.5 mt-2" style={{ fontSize: 12, color: SHELL.mut }}>
+                  <Trash2 size={13} /> Supprimer le logo
+                </button>
+              )}
+
+              {kit.logo && !analyzing && (
                 <div className="flex items-center gap-1.5 mt-2.5">
                   <span style={{ fontSize: 11, color: SHELL.mut, marginRight: 4 }}>Extrait :</span>
                   {["primary", "accent", "background", "text"].map((k) => (
@@ -426,15 +458,24 @@ export default function Ardoise() {
               <TextField label="Lien de réservation" icon={CalendarDays} value={info.reserveUrl} onChange={(v) => setInfo((i) => ({ ...i, reserveUrl: v }))} />
             </Group>
 
+            {/* --- Photothèque --- */}
+            <Group icon={BookImage} title="Photothèque" hint={`${photos.length} photo${photos.length > 1 ? "s" : ""}`}>
+              <PhotoLibrary photos={photos} onAdd={addPhotos} onDelete={deletePhoto} />
+            </Group>
+
             {/* --- Éditeur selon le support --- */}
             {support === "semaine" ? (
               <Group icon={CalendarDays} title="Menu de la semaine" hint="Format Instagram">
                 <WeekEditor week={week} setWeek={setWeek} currency={settings.currency}
                   weekHistory={weekHistory} onNextWeek={nextWeek} onRestoreWeek={restoreWeek} onDeleteHistory={deleteWeekHistory} />
               </Group>
+            ) : support === "special" ? (
+              <Group icon={NotebookPen} title="Plat du jour" hint="Affiche A4">
+                <DailyEditor daily={daily} setDaily={setDaily} />
+              </Group>
             ) : support === "saison" ? (
               <Group icon={Leaf} title="Menu saisonnier" hint={`${seasonal.dishes.length} plats`}>
-                <SeasonalEditor seasonal={seasonal} setSeasonal={setSeasonal} currency={settings.currency} />
+                <SeasonalEditor seasonal={seasonal} setSeasonal={setSeasonal} currency={settings.currency} photos={photos} />
               </Group>
             ) : support === "boissons" ? (
               <Group icon={Wine} title="Carte des boissons" hint={`${drinks.categories.length} catégories`}>
@@ -462,7 +503,7 @@ export default function Ardoise() {
                         {items.length === 0 && <div style={{ fontSize: 11.5, color: SHELL.mut, padding: "2px 0 4px" }}>Aucun plat</div>}
                         <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
                           {items.map((d) => (
-                            <DishRow key={d.id} dish={d} currency={settings.currency} onUpd={updDish} onDel={delDish} />
+                            <DishRow key={d.id} dish={d} currency={settings.currency} photos={photos} onUpd={updDish} onDel={delDish} />
                           ))}
                         </div>
                       </div>
@@ -503,7 +544,7 @@ export default function Ardoise() {
         </aside>
 
         {/* ===================== WORKSPACE / PREVIEW ===================== */}
-        <Workspace support={support} supports={supports} kit={kit} info={info} dishes={dishes} week={week} seasonal={seasonal} drinks={drinks} about={about} event={event} featured={featured} currency={settings.currency} lang={lang} exportRef={exportRef} />
+        <Workspace support={support} supports={supports} kit={kit} info={info} dishes={dishes} week={week} seasonal={seasonal} drinks={drinks} about={about} event={event} daily={daily} featured={featured} currency={settings.currency} lang={lang} exportRef={exportRef} />
       </div>
 
       {/* toast */}

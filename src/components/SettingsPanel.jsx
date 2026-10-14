@@ -6,6 +6,7 @@ import { Group, SelectField } from "./ui.jsx";
 const LANGUAGES = [
   { value: "fr", label: "Français" },
   { value: "en", label: "English" },
+  { value: "it", label: "Italiano" },
 ];
 
 /* Devise + langue : réglages transverses lus par tous les supports exportés. */

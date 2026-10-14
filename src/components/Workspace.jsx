@@ -25,7 +25,7 @@ function renderPreview(support, props) {
   }
 }
 
-export default function Workspace({ support, supports, kit, info, dishes, week, seasonal, drinks, about, event, featured, currency, lang, exportRef }) {
+export default function Workspace({ support, supports, kit, info, dishes, week, seasonal, drinks, about, event, daily, featured, currency, lang, exportRef }) {
   const stageRef = useRef(null);
   const innerRef = useRef(null);
   const [scale, setScale] = useState(1);
@@ -48,10 +48,10 @@ export default function Workspace({ support, supports, kit, info, dishes, week, 
     update();
     const ro = new ResizeObserver(update); ro.observe(el);
     return () => ro.disconnect();
-  }, [scale, support, dishes, week, seasonal, drinks, about, event, kit, info, currency, lang]);
+  }, [scale, support, dishes, week, seasonal, drinks, about, event, daily, kit, info, currency, lang]);
 
   const meta = supports.find((s) => s.id === support);
-  const previewProps = { kit, info, dishes, week, seasonal, drinks, about, event, dish: featured, currency, lang, w: PREVIEW_W };
+  const previewProps = { kit, info, dishes, week, seasonal, drinks, about, event, daily, dish: featured, currency, lang, w: PREVIEW_W };
 
   return (
     <main ref={stageRef} className="flex-1 md:h-full md:overflow-y-auto" style={{ background: SHELL.work }}>

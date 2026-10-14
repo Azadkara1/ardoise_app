@@ -60,6 +60,33 @@ const DICT = {
     seasonAutomne: "Autumn",
     seasonHiver: "Winter",
   },
+  it: {
+    supportSemaine: "Settimana",
+    supportMenu: "Menù",
+    supportSpecial: "Piatto del giorno",
+    supportPost: "Post social",
+    supportSaison: "Stagionale",
+    supportBoissons: "Bevande",
+    supportStory: "Story",
+    supportSoiree: "Serata",
+    dailySpecials: "I piatti del giorno",
+    weekSpecial: "Il piatto della settimana",
+    bonAppetit: "Buon appetito!",
+    sectionEntrees: "Antipasti",
+    sectionPlats: "Piatti principali",
+    sectionDesserts: "Dolci",
+    badgeDuJour: "del giorno",
+    badgeCoupDeCoeur: "il preferito",
+    todaysSpecial: "Il piatto del giorno",
+    atTheMenu: "Al menù",
+    reserveTable: "Prenota un tavolo",
+    signature: "Signature",
+    drinksTitle: "Carta delle bevande",
+    seasonPrintemps: "Primavera",
+    seasonEte: "Estate",
+    seasonAutomne: "Autunno",
+    seasonHiver: "Inverno",
+  },
 };
 
 export function t(key, lang = "fr") {
@@ -68,7 +95,9 @@ export function t(key, lang = "fr") {
 
 /** "Formule avec dessert du jour + {price}" — le seul libellé fixe avec un prix inséré. */
 export function setMenuLine(price, lang = "fr") {
-  return lang === "en" ? `Set menu with dessert of the day + ${price}` : `Formule avec dessert du jour + ${price}`;
+  if (lang === "en") return `Set menu with dessert of the day + ${price}`;
+  if (lang === "it") return `Formula con dolce del giorno + ${price}`;
+  return `Formule avec dessert du jour + ${price}`;
 }
 
 const DAY_NAMES_EN = {
@@ -77,9 +106,15 @@ const DAY_NAMES_EN = {
 };
 
 /** Ne traduit que les jours par défaut reconnus (Lundi…Dimanche) — un nom personnalisé est du contenu saisi, pas traduit. */
+const DAY_NAMES_IT = {
+  Lundi: "Lunedì", Mardi: "Martedì", Mercredi: "Mercoledì", Jeudi: "Giovedì",
+  Vendredi: "Venerdì", Samedi: "Sabato", Dimanche: "Domenica",
+};
+
 export function translateDay(day, lang) {
-  if (lang !== "en") return day;
-  return DAY_NAMES_EN[day] || day;
+  if (lang === "en") return DAY_NAMES_EN[day] || day;
+  if (lang === "it") return DAY_NAMES_IT[day] || day;
+  return day;
 }
 
 const SEASON_KEYS = { Printemps: "seasonPrintemps", Été: "seasonEte", Automne: "seasonAutomne", Hiver: "seasonHiver" };

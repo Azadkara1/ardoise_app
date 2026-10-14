@@ -1,14 +1,14 @@
 import { Instagram, Globe } from "lucide-react";
 import { ff } from "../theme.js";
 import { hexA, onColor } from "../colorUtils.js";
-import { formatPrice } from "../currency.js";
 import { t } from "../i18n.js";
 
 /* ======================= PREVIEW : PLAT DU JOUR (A4) ======================= */
-export default function SpecialPreview({ kit, info, dish, currency, lang, w }) {
+export default function SpecialPreview({ kit, info, daily, lang, w }) {
   const H = Math.round((w * 297) / 210);
   const title = ff(kit.titleFont), body = ff(kit.bodyFont);
   const fg = onColor(kit.primary);
+  const text = (daily?.text || "").trim();
   return (
     <div style={{ width: w, height: H, background: kit.primary, color: fg, fontFamily: body, position: "relative",
       boxShadow: "0 24px 60px -20px rgba(0,0,0,0.4), 0 4px 14px rgba(0,0,0,0.12)", overflow: "hidden",
@@ -24,16 +24,11 @@ export default function SpecialPreview({ kit, info, dish, currency, lang, w }) {
         </div>
       </div>
 
-      <div style={{ textAlign: "center" }}>
-        <div style={{ fontFamily: title, fontSize: 52, lineHeight: 1.04, fontWeight: 700 }}>
-          {dish ? dish.name : "—"}
+      <div style={{ textAlign: "center", width: "100%" }}>
+        <div style={{ fontFamily: title, fontSize: 46, lineHeight: 1.12, fontWeight: 700, whiteSpace: "pre-line", overflowWrap: "anywhere" }}>
+          {text || "—"}
         </div>
-        <div style={{ height: 1, width: 70, background: hexA(fg, 0.4), margin: "26px auto" }} />
-        <div style={{ display: "inline-flex", alignItems: "center", justifyContent: "center",
-          background: kit.accent, color: onColor(kit.accent), borderRadius: 999, padding: "12px 28px",
-          fontSize: 26, fontWeight: 700, fontFamily: title }}>
-          {dish ? formatPrice(dish.price, currency) : ""}
-        </div>
+        <div style={{ height: 1, width: 70, background: hexA(fg, 0.4), margin: "26px auto 0" }} />
       </div>
 
       <div style={{ textAlign: "center" }}>

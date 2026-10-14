@@ -1,45 +1,25 @@
-import { useRef, useState } from "react";
+import { useState } from "react";
 import { Trash2, Star, Image as ImageIcon, X } from "lucide-react";
 import { SHELL } from "../theme.js";
 import { hexA } from "../colorUtils.js";
 import { currencyLabel } from "../currency.js";
-import { resizeImageFile } from "../imageUtils.js";
 import { SECTIONS } from "../data/defaults.js";
+import PhotoAdjuster from "./PhotoAdjuster.jsx";
 
-export default function DishRow({ dish, currency, onUpd, onDel }) {
-  const fileRef = useRef(null);
-  const [uploading, setUploading] = useState(false);
-
-  const onPickPhoto = async (file) => {
-    if (!file) return;
-    setUploading(true);
-    try {
-      const dataUrl = await resizeImageFile(file);
-      onUpd(dish.id, { photo: dataUrl });
-    } catch {
-      // fichier illisible : on laisse la photo existante inchangée
-    } finally {
-      setUploading(false);
-    }
-  };
+export default function DishRow({ dish, currency, photos = [], onUpd, onDel }) {
+  const [open, setOpen] = useState(false);
+  // photo de la photothèque (photoId), ou ancienne photo stockée directement sur le plat
+  const src = photos.find((p) => p.id === dish.photoId)?.src ?? dish.photo ?? null;
 
   return (
     <div style={{ border: `1px solid ${SHELL.line}`, borderRadius: 10, padding: 8, background: "#fff" }}>
       <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
-        <input ref={fileRef} type="file" accept="image/*" className="hidden"
-          onChange={(e) => onPickPhoto(e.target.files && e.target.files[0])} />
-        <button onClick={() => fileRef.current && fileRef.current.click()} title={dish.photo ? "Remplacer la photo" : "Ajouter une photo"}
+        <button onClick={() => setOpen((v) => !v)} title={src ? "Modifier la photo" : "Ajouter une photo"}
           className="relative shrink-0 flex items-center justify-center overflow-hidden"
-          style={{ width: 26, height: 26, borderRadius: 7, background: "#f4f2ee", border: `1px solid ${SHELL.line}` }}>
-          {dish.photo ? <img src={dish.photo} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+          style={{ width: 26, height: 26, borderRadius: 7, background: "#f4f2ee", border: `1px solid ${open ? SHELL.honey : SHELL.line}` }}>
+          {src ? <img src={src} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
             : <ImageIcon size={13} style={{ color: SHELL.mut }} />}
         </button>
-        {dish.photo && !uploading && (
-          <button onClick={() => onUpd(dish.id, { photo: null })} title="Retirer la photo"
-            style={{ padding: 3, color: SHELL.mut, borderRadius: 6 }} className="hover:bg-neutral-100">
-            <X size={12} />
-          </button>
-        )}
         <input value={dish.name} onChange={(e) => onUpd(dish.id, { name: e.target.value })}
           style={{ flex: 1, minWidth: 0, fontSize: 13, fontWeight: 500, color: SHELL.txt, border: "none", outline: "none", background: "transparent" }} />
         <input value={dish.price} onChange={(e) => onUpd(dish.id, { price: e.target.value.replace(",", ".") })}
@@ -51,6 +31,37 @@ export default function DishRow({ dish, currency, onUpd, onDel }) {
           <Trash2 size={14} />
         </button>
       </div>
+      {open && (
+        <div style={{ marginTop: 8, padding: 8, borderRadius: 8, background: "#faf9f6" }}>
+          {photos.length === 0 && !src ? (
+            <p style={{ fontSize: 11.5, color: SHELL.mut, lineHeight: 1.4 }}>
+              Importez d'abord des photos dans la Photothèque (en haut du panneau), puis choisissez-les ici.
+            </p>
+          ) : (
+            <>
+              <div className="flex flex-wrap gap-1.5">
+                <button onClick={() => onUpd(dish.id, { photoId: null, photo: null, photoFit: null })}
+                  title="Aucune photo" className="flex items-center justify-center"
+                  style={{ width: 40, height: 40, borderRadius: 7, border: `1.5px solid ${!src ? SHELL.honey : SHELL.line}`, background: "#fff", color: SHELL.mut }}>
+                  <X size={14} />
+                </button>
+                {photos.map((p) => (
+                  <button key={p.id} onClick={() => onUpd(dish.id, { photoId: p.id, photo: null, photoFit: null })}
+                    style={{ width: 40, height: 40, borderRadius: 7, overflow: "hidden", padding: 0,
+                      border: `1.5px solid ${dish.photoId === p.id ? SHELL.honey : SHELL.line}` }}>
+                    <img src={p.src} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+                  </button>
+                ))}
+              </div>
+              {src && (
+                <div style={{ marginTop: 10 }}>
+                  <PhotoAdjuster src={src} fit={dish.photoFit} onChange={(photoFit) => onUpd(dish.id, { photoFit })} />
+                </div>
+              )}
+            </>
+          )}
+        </div>
+      )}
       <div style={{ display: "flex", alignItems: "center", gap: 6, marginTop: 7 }}>
         <div style={{ display: "flex", gap: 3, background: "#f4f2ee", borderRadius: 7, padding: 2 }}>
           {SECTIONS.map((s) => {
