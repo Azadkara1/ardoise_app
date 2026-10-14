@@ -4,9 +4,10 @@ import { hexA, onColor } from "../colorUtils.js";
 import { formatPrice } from "../currency.js";
 import { t } from "../i18n.js";
 import PhotoBg from "./PhotoBg.jsx";
+import { basePrice } from "../dishUtils.js";
 
 /* ======================= PREVIEW : POST (1080×1080) ======================= */
-export default function PostPreview({ kit, info, dish, currency, lang, w }) {
+export default function PostPreview({ kit, info, dish, currency, lang, venueType, w }) {
   const title = ff(kit.titleFont), body = ff(kit.bodyFont);
   const ctaFg = onColor(kit.primary);
   const hasPhoto = !!dish?.photo;
@@ -47,7 +48,7 @@ export default function PostPreview({ kit, info, dish, currency, lang, w }) {
           {dish ? dish.name : "—"}
         </div>
         <div style={{ display: "flex", alignItems: "baseline", gap: 10, marginTop: 16 }}>
-          <span style={{ fontFamily: title, fontSize: 34, fontWeight: 700, color: textFg }}>{dish ? formatPrice(dish.price, currency) : ""}</span>
+          <span style={{ fontFamily: title, fontSize: 34, fontWeight: 700, color: textFg }}>{dish ? formatPrice(basePrice(dish), currency) : ""}</span>
           <span style={{ fontSize: 12.5, color: hexA(textFg, 0.6) }}>{info.name}</span>
         </div>
       </div>
@@ -65,7 +66,7 @@ export default function PostPreview({ kit, info, dish, currency, lang, w }) {
         style={{ position: "relative", width: "100%", background: hasPhoto ? "#fff" : kit.primary, color: hasPhoto ? kit.primary : ctaFg, borderRadius: 14, padding: "15px 0",
           fontSize: 16, fontWeight: 700, fontFamily: title, letterSpacing: "0.04em", textDecoration: "none",
           display: "flex", alignItems: "center", justifyContent: "center", gap: 8 }}>
-        {t("reserveTable", lang)}
+        {t(venueType === "snack" ? "order" : "reserve", lang)}
       </a>
     </div>
   );

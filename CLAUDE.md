@@ -2,6 +2,11 @@
 
 > **Mets ce fichier à jour à chaque nouvelle fonctionnalité** (états ajoutés, nouveaux supports, section « Fait / À faire »). C'est la première chose à lire en début de session.
 
+> **Deux versions coexistent** (sélecteur en haut à gauche, `src/Root.jsx`) :
+> - **Nouvelle app** (`src/App.jsx`) : accueil, restaurant/snack, `sections` dynamiques, menu en livre 3D (`components/book/`), store Context+useReducer (`state/store.jsx`), 6 vues (Accueil, Ma carte, Menu, Plat du jour, Post, Identité), stockage `ardoise:v2`. Les sections ci-dessous décrivant `week/seasonal/drinks/event/profils` concernent l'**ancienne app**.
+> - **Ancienne app** (`src/legacy/`) : copie figée de la version précédente (stockage `ardoise:v1`), décrite dans le reste de ce fichier.
+> Fichiers de l'ancienne structure encore présents à la racine de `src/` mais inutilisés par la nouvelle app : WeekEditor, SeasonalEditor, DrinksEditor, EventEditor, ProfilesPanel, PhotoLibrary, previews Week/Menu/Seasonal/Drinks/Story/Event, dateUtils.js (doublons de `src/legacy/`, à supprimer).
+
 ## Le projet
 
 Générateur de supports de communication pour **un** restaurant, dans **sa** charte graphique (« Brand Kit ») : un seul réglage de couleurs/polices/logo que tous les supports (menu, post Instagram, affiche…) lisent automatiquement. Pas de backend : tout vit dans le navigateur (localStorage).

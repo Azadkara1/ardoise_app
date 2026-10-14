@@ -1,3 +1,47 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+/* Focus clavier visible partout (accessibilité) — ambre foncé du shell. */
+:focus-visible {
+  outline: 2px solid #a67c26;
+  outline-offset: 2px;
+}
+
+/* ---------- Livre : tournage de page en CSS 3D ---------- */
+/* La page qui tourne pivote autour de la reliure (transform-origin: left). */
+@keyframes pageFlipFwd {
+  from { transform: rotateY(0deg); }
+  to { transform: rotateY(-180deg); }
+}
+@keyframes pageFlipBack {
+  from { transform: rotateY(-180deg); }
+  to { transform: rotateY(0deg); }
+}
+/* Ombre portée sur la page qui tourne : monte jusqu'à mi-course (page à la verticale) puis retombe. */
+@keyframes pageShade {
+  0% { opacity: 0; }
+  50% { opacity: 0.55; }
+  100% { opacity: 0; }
+}
+/* Ombre jetée sur la page du dessous. */
+@keyframes underShade {
+  0% { opacity: 0.45; }
+  100% { opacity: 0; }
+}
+@keyframes bookFade {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.book-flip-fwd { animation: pageFlipFwd 0.75s cubic-bezier(0.45, 0.05, 0.25, 1) forwards; }
+.book-flip-back { animation: pageFlipBack 0.75s cubic-bezier(0.45, 0.05, 0.25, 1) forwards; }
+.book-shade { animation: pageShade 0.75s ease-in-out forwards; }
+.book-under-shade { animation: underShade 0.75s ease-out forwards; }
+.book-fade { animation: bookFade 0.25s ease-out; }
+
+/* prefers-reduced-motion : plus de rotation, simple fondu (le composant saute l'animation 3D). */
+@media (prefers-reduced-motion: reduce) {
+  .book-flip-fwd, .book-flip-back, .book-shade, .book-under-shade { animation: none; }
+  .book-fade { animation-duration: 0.15s; }
+}

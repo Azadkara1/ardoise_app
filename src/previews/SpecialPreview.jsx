@@ -1,14 +1,22 @@
 import { Instagram, Globe } from "lucide-react";
 import { ff } from "../theme.js";
 import { hexA, onColor } from "../colorUtils.js";
+import { formatPrice } from "../currency.js";
 import { t } from "../i18n.js";
+import { basePrice } from "../dishUtils.js";
+import PhotoBg from "./PhotoBg.jsx";
 
-/* ======================= PREVIEW : PLAT DU JOUR (A4) ======================= */
-export default function SpecialPreview({ kit, info, daily, lang, w }) {
+/* ======================= PREVIEW : PLAT DU JOUR (A4) =======================
+ * Le texte libre est l'élément principal. Si un plat de la carte est lié, on affiche
+ * en plus sa photo (si elle existe) et son prix en pastille accent. */
+export default function SpecialPreview({ kit, info, daily, dish, currency, lang, w }) {
   const H = Math.round((w * 297) / 210);
   const title = ff(kit.titleFont), body = ff(kit.bodyFont);
   const fg = onColor(kit.primary);
   const text = (daily?.text || "").trim();
+  const photo = daily?.photo || dish?.photo || null;
+  const fit = daily?.photo ? daily.photoFit : dish?.photoFit;
+  const hasPhoto = !!photo;
   return (
     <div style={{ width: w, height: H, background: kit.primary, color: fg, fontFamily: body, position: "relative",
       boxShadow: "0 24px 60px -20px rgba(0,0,0,0.4), 0 4px 14px rgba(0,0,0,0.12)", overflow: "hidden",
@@ -25,10 +33,22 @@ export default function SpecialPreview({ kit, info, daily, lang, w }) {
       </div>
 
       <div style={{ textAlign: "center", width: "100%" }}>
-        <div style={{ fontFamily: title, fontSize: 46, lineHeight: 1.12, fontWeight: 700, whiteSpace: "pre-line", overflowWrap: "anywhere" }}>
+        {hasPhoto && (
+          <div style={{ position: "relative", overflow: "hidden", width: "100%", height: 250, borderRadius: 16, background: "#000", marginBottom: 26 }}>
+            <PhotoBg src={photo} fit={fit} />
+          </div>
+        )}
+        <div style={{ fontFamily: title, fontSize: hasPhoto ? 36 : 46, lineHeight: 1.12, fontWeight: 700, whiteSpace: "pre-line", overflowWrap: "anywhere" }}>
           {text || "—"}
         </div>
-        <div style={{ height: 1, width: 70, background: hexA(fg, 0.4), margin: "26px auto 0" }} />
+        {dish && (
+          <div style={{ display: "inline-flex", alignItems: "center", justifyContent: "center", marginTop: 24,
+            background: kit.accent, color: onColor(kit.accent), borderRadius: 999, padding: "12px 28px",
+            fontSize: 26, fontWeight: 700, fontFamily: title }}>
+            {formatPrice(basePrice(dish), currency)}
+          </div>
+        )}
+        {!dish && <div style={{ height: 1, width: 70, background: hexA(fg, 0.4), margin: "26px auto 0" }} />}
       </div>
 
       <div style={{ textAlign: "center" }}>

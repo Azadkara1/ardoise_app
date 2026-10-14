@@ -5,6 +5,19 @@
     <link rel="icon" type="image/png" href="/logo-courbe-du-gout.png" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Ardoise — menu &amp; com, une seule DA</title>
+    <!--
+      Polices Google chargées une seule fois ici (pas à chaque rendu React).
+      `crossorigin` est indispensable : sans lui le navigateur bloque la lecture de
+      styleSheet.cssRules et html-to-image ne peut pas embarquer les polices dans l'export.
+      Garder la liste synchronisée avec TITLE_FONTS / BODY_FONTS de src/theme.js.
+    -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      rel="stylesheet"
+      crossorigin="anonymous"
+      href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;0,800;0,900;1,400&family=Bebas+Neue&family=DM+Serif+Display:ital@0;1&family=Space+Grotesk:wght@400;500;600;700&family=Cormorant+Garamond:ital,wght@0,400;0,600;0,700;1,400&family=Fraunces:ital,wght@0,400;0,600;0,900;1,400&family=Abril+Fatface&family=Archivo+Black&family=Oswald:wght@400;500;600;700&family=Inter:wght@300;400;500;600;700&family=DM+Sans:ital,wght@0,400;0,500;0,700;1,400&family=Work+Sans:wght@400;500;600;700&family=Karla:ital,wght@0,400;0,500;0,700;1,400&family=Nunito+Sans:wght@400;600;700&family=Lora:ital,wght@0,400;0,500;0,600;1,400&display=swap"
+    />
   </head>
   <body>
     <div id="root"></div>

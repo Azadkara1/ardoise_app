@@ -24,26 +24,7 @@ export const BODY_FONTS = ["Lora", "Inter", "DM Sans", "Work Sans", "Karla", "Nu
 export const ff = (name) =>
   `'${name}', ${SERIF.has(name) ? "Georgia, 'Times New Roman', serif" : "system-ui, sans-serif"}`;
 
-export const GOOGLE_HREF =
-  "https://fonts.googleapis.com/css2?" +
-  [
-    "Playfair+Display:ital,wght@0,400;0,600;0,700;0,800;0,900;1,400",
-    "Bebas+Neue",
-    "DM+Serif+Display:ital@0;1",
-    "Space+Grotesk:wght@400;500;600;700",
-    "Cormorant+Garamond:ital,wght@0,400;0,600;0,700;1,400",
-    "Fraunces:ital,wght@0,400;0,600;0,900;1,400",
-    "Abril+Fatface",
-    "Archivo+Black",
-    "Oswald:wght@400;500;600;700",
-    "Inter:wght@300;400;500;600;700",
-    "DM+Sans:ital,wght@0,400;0,500;0,700;1,400",
-    "Work+Sans:wght@400;500;600;700",
-    "Karla:ital,wght@0,400;0,500;0,700;1,400",
-    "Nunito+Sans:wght@400;600;700",
-    "Lora:ital,wght@0,400;0,500;0,600;1,400",
-  ].map((f) => "family=" + f).join("&") +
-  "&display=swap";
+/* Les polices Google sont chargées dans index.html (garder les deux listes synchronisées). */
 
 export const INP = {
   width: "100%", fontSize: 13, color: SHELL.txt, background: "#faf9f6",

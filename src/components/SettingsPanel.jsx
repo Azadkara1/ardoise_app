@@ -1,6 +1,7 @@
 import { Settings } from "lucide-react";
 import { SHELL } from "../theme.js";
 import { CURRENCY_CODES, CURRENCIES } from "../currency.js";
+import { useStore } from "../state/store.jsx";
 import { Group, SelectField } from "./ui.jsx";
 
 const LANGUAGES = [
@@ -10,21 +11,19 @@ const LANGUAGES = [
 ];
 
 /* Devise + langue : réglages transverses lus par tous les supports exportés. */
-export default function SettingsPanel({ settings, setSettings }) {
-  const set = (patch) => setSettings((s) => ({ ...s, ...patch }));
-  const currencyOptions = CURRENCY_CODES.map((code) => ({
-    value: code,
-    label: `${code} (${CURRENCIES[code].symbol})`,
-  }));
+export default function SettingsPanel() {
+  const { state, setSettings } = useStore();
+  const { settings } = state;
+  const currencyOptions = CURRENCY_CODES.map((code) => ({ value: code, label: `${code} (${CURRENCIES[code].symbol})` }));
 
   return (
     <Group icon={Settings} title="Réglages">
       <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-        <SelectField label="Devise" value={settings.currency} options={currencyOptions} onChange={(v) => set({ currency: v })} />
-        <SelectField label="Langue" value={settings.lang} options={LANGUAGES} onChange={(v) => set({ lang: v })} />
+        <SelectField label="Devise" value={settings.currency} options={currencyOptions} onChange={(v) => setSettings({ currency: v })} />
+        <SelectField label="Langue" value={settings.lang} options={LANGUAGES} onChange={(v) => setSettings({ lang: v })} />
       </div>
       <p style={{ fontSize: 11, color: SHELL.mut, lineHeight: 1.4, marginTop: 8 }}>
-        La langue traduit les libellés fixes des supports exportés (jours, sections, CTA…), jamais le contenu que vous saisissez.
+        La langue traduit les libellés fixes des supports (« Réserver », « Le plat du jour »…), jamais le contenu que vous saisissez.
       </p>
     </Group>
   );

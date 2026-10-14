@@ -10,25 +10,15 @@ import jsPDF from "jspdf";
  * le contenu et ne font pas toujours exactement le format A4/A5/4:5 nominal.
  */
 const PAGE_SPECS = {
-  semaine: { width: 150, pixelRatio: 3 }, // 4:5
-  menu: { width: 148, pixelRatio: 4 }, // A5 portrait
+  menu: { width: 148, pixelRatio: 4 }, // une page du livre : A5 portrait
   special: { width: 210, pixelRatio: 4 }, // A4 portrait
   post: { width: 190, pixelRatio: 3 }, // carré
-  saison: { width: 148, pixelRatio: 4 }, // A5 portrait
-  boissons: { width: 148, pixelRatio: 4 }, // A5 portrait
-  story: { width: 105, pixelRatio: 3 }, // 9:16
-  soiree: { width: 210, pixelRatio: 4 }, // A4 portrait
 };
 
 const SUPPORT_SLUGS = {
-  semaine: "semaine",
   menu: "menu",
   special: "plat-du-jour",
   post: "post-reseaux",
-  saison: "saisonnier",
-  boissons: "boissons",
-  story: "story",
-  soiree: "soiree",
 };
 
 const stripDiacritics = (s) =>
@@ -66,11 +56,11 @@ function blobToDataURL(blob) {
 }
 
 /**
- * Capture le nœud d'aperçu (à l'échelle 1, cf. Workspace.jsx) en image nette
+ * Capture le nœud d'aperçu (à l'échelle 1, cf. Workspace.jsx / MenuPage.jsx) en image nette
  * et déclenche le téléchargement, en PNG direct ou intégré dans un PDF dont
  * la page épouse le ratio réellement capturé (pas de déformation).
  */
-export async function exportSupport({ node, support, restaurantName, format }) {
+export async function exportSupport({ node, support, restaurantName, format, suffix = "" }) {
   if (!node) throw new Error("Aperçu introuvable pour l'export.");
   const spec = PAGE_SPECS[support] || PAGE_SPECS.post;
 
@@ -89,10 +79,12 @@ export async function exportSupport({ node, support, restaurantName, format }) {
     pixelRatio: spec.pixelRatio,
     cacheBust: true,
     skipFonts: false,
+    // les éléments marqués data-noexport (boutons d'import de photo…) ne sortent pas dans l'image
+    filter: (n) => !(n.dataset && n.dataset.noexport),
   });
   if (!blob) throw new Error("La génération de l'image a échoué.");
 
-  const filename = `${slugify(restaurantName)}-${SUPPORT_SLUGS[support] || support}`;
+  const filename = `${slugify(restaurantName)}-${SUPPORT_SLUGS[support] || support}${suffix ? `-${suffix}` : ""}`;
 
   if (format === "PNG") {
     downloadBlob(blob, `${filename}.png`);
@@ -109,4 +101,38 @@ export async function exportSupport({ node, support, restaurantName, format }) {
   });
   pdf.addImage(dataUrl, "PNG", 0, 0, pageWidth, pageHeight);
   pdf.save(`${filename}.pdf`);
+}
+
+/**
+ * Export de PLUSIEURS pages (le menu complet) : `nodes` = un nœud par page, à l'échelle 1.
+ * PDF : un seul fichier, une page A5 par page du livre. PNG : un fichier par page.
+ */
+export async function exportPages({ nodes, support, restaurantName, format }) {
+  if (!nodes || !nodes.length) throw new Error("Aucune page à exporter.");
+  const spec = PAGE_SPECS[support] || PAGE_SPECS.menu;
+  if (document.fonts && document.fonts.ready) await document.fonts.ready;
+
+  const base = `${slugify(restaurantName)}-${SUPPORT_SLUGS[support] || support}`;
+  const capture = (node) => toBlob(node, {
+    pixelRatio: spec.pixelRatio, cacheBust: true, skipFonts: false,
+    filter: (n) => !(n.dataset && n.dataset.noexport),
+  });
+
+  let pdf = null;
+  for (let i = 0; i < nodes.length; i++) {
+    const blob = await capture(nodes[i]);
+    if (!blob) throw new Error("La génération de l'image a échoué.");
+    if (format === "PNG") {
+      downloadBlob(blob, `${base}-page-${i + 1}.png`);
+      await new Promise((r) => setTimeout(r, 350)); // laisse le navigateur enchaîner les téléchargements
+    } else {
+      const rect = nodes[i].getBoundingClientRect();
+      const h = spec.width * (rect.height / Math.max(1, rect.width));
+      const dataUrl = await blobToDataURL(blob);
+      if (!pdf) pdf = new jsPDF({ orientation: h > spec.width ? "portrait" : "landscape", unit: "mm", format: [spec.width, h] });
+      else pdf.addPage([spec.width, h], h > spec.width ? "portrait" : "landscape");
+      pdf.addImage(dataUrl, "PNG", 0, 0, spec.width, h);
+    }
+  }
+  if (pdf) pdf.save(`${base}.pdf`);
 }
